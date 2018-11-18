@@ -7,26 +7,20 @@ using System.Threading.Tasks;
 
 namespace FunctionParser
 {
-    class Parser
+    public class Parser
     {
+        string expression;
         //Части выражения
-        public Part[] parts;
+        public List<Part>parts;
         //Количество переменных
-        int variables;
-        public int Variables
-        {
-            get
-            {
-                return variables;
-            }
-        }
         //Конструктор
-        public Parser(string s)
+        public Parser(string expression)
         {
-            parts = SplitIntoPieces(s).ToArray<Part>();
+            this.expression = expression;
+            parts = Postfix(expression);
         }
         //Список частей
-        public List<Part> SplitIntoPieces(string expression)
+        public static List<Part> SplitIntoPieces(string expression)
         {
             string term = "";
             List<Part> parts = new List<Part>();
@@ -48,8 +42,9 @@ namespace FunctionParser
             }
             return parts;
         }
-        public bool IsRightFunction()
+        public static bool IsRightFunction(string s)
         {
+            Part[] parts = SplitIntoPieces(s).ToArray<Part>();
             TypeOfPart current = parts[0].ttype;
             int am_brackets = 0;
             if ((current == TypeOfPart.closeBracket) && (parts[0].Term != "-"))
@@ -98,7 +93,7 @@ namespace FunctionParser
             return true;
         }
         //Приоритет различных операций
-        public short priority(string s)
+        public static short priority(string s)
         {
             short proirity = 0;
             switch (s)
@@ -118,11 +113,12 @@ namespace FunctionParser
             return proirity;
         }
         //Подсчёт количества пременных
-        public void CountVariables()
+        public static int CountVariables(string expression)
         {
-            variables = 0;
+            int variables = 0;
+            List<Part> parts = SplitIntoPieces(expression);
             List<string> early = new List<string>();
-            for (int i = 0; i < parts.Length; i++)
+            for (int i = 0; i < parts.Count; i++)
             {
                 if (parts[i].ttype == TypeOfPart.variable && !early.Contains(parts[i].Term))
 
@@ -131,10 +127,12 @@ namespace FunctionParser
                     variables++;
                 }
             }
+            return variables;
         }
         //Постфиксная запись 
-        public void Postfix()
+        public static List<Part> Postfix(string expression)
         {
+            List<Part> parts = SplitIntoPieces(expression);
             List<Part> result = new List<Part>();
             Stack<Part> stack = new Stack<Part>();
             Part current;
@@ -175,11 +173,12 @@ namespace FunctionParser
             while (stack.Count > 0)
                 result.Add(stack.Pop());
 
-            parts = result.ToArray<Part>();
+            return result;
         }
         //Результат функции
         public double Answer(Vector x)
         {
+            
             Stack<double> stack = new Stack<double>();
             int index;
             double first = 0;
